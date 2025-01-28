@@ -1,0 +1,18 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+build
+dist
+pyenv
+
+# Test and coverage
+.coverage
+.hypothesis
+htmlcov
+
+# Log files
+*.log
+logs
+
+# Nuitka files
+damasen.dist

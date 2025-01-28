@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "damasen"
+version = "0.1.0"
+description = "An accessible Crawl-like game"
+authors = ["Vincent Le Goff <vincent.legoff.srs@gmail.com>"]
+license = "BSD3"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+wxpython = {version = "^4.2.2", platform = "win32"}
+accessible-output3 = {git = "https://github.com/SigmaNight/accessible_output3", platform = "win32"}
+
+
+[tool.poetry.group.dev.dependencies]
+nuitka = "^2.6.1"
+ruff = "^0.9.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+src = ["damasen"]
+respect-gitignore = true
+line-length = 80
+unsafe-fixes = false
+target-version = "py312"
+
+[tool.ruff.format]
+line-ending = "lf"
+skip-magic-trailing-comma = true
+
+[tool.ruff.lint]
+extend-select = ["D203"]
