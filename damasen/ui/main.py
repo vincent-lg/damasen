@@ -2,6 +2,8 @@
 
 import wx
 
+from damasen.ui.game import GameWindow
+
 
 class MainWindow(wx.Frame):
     def __init__(self, *args, **kwargs):
@@ -25,7 +27,9 @@ class MainWindow(wx.Frame):
         panel.SetSizer(vbox)
 
     def on_play(self, _event):
-        wx.MessageBox("Play button clicked!", "Play", wx.OK | wx.ICON_INFORMATION)
+        game_window = GameWindow(None)
+        game_window.Show()
+        self.Destroy()
 
     def on_quit(self, _event):
         self.Close()
