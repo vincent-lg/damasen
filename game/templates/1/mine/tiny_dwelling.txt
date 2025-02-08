@@ -1,0 +1,6 @@
+#++#
++..#
+#+##
+
+min_on_floor 2
+max_on_floor 4
