@@ -30,7 +30,18 @@ class Floor(EnhancedWithData):
     def __init__(self):
         self.map: np.ndarray = np.full(self.size, 0, dtype=np.int8)
         self.mapping = {0: Wall}
+        self.reversed_mapping = {Wall: 0}
         self.floor_templates = []
+
+    @property
+    def empty_tile(self) -> int:
+        """Return the used number for an empty tile."""
+        return self.reversed_mapping[Empty]
+
+    @property
+    def wall_tile(self) -> int:
+        """Return the used number for a wall tile."""
+        return self.reversed_mapping[Wall]
 
     def build_from_templates(self):
         """Build the floor map using the loaded templates.
@@ -62,6 +73,7 @@ class Floor(EnhancedWithData):
                         raise ValueError("too many tiles to set in this floor")
 
                     self.mapping[index] = terrain
+                    self.reversed_mapping[terrain] = index
 
     def build_floor_templates(self):
         """Build all the floor templates using the floor mapping.
@@ -107,30 +119,33 @@ class Floor(EnhancedWithData):
         templates = self.get_floor_templates_to_use()
         occupied = np.zeros(self.size, dtype=bool)
 
-        possible_positions = [
-            (x, y) for x in range(1, self.size[1] - 6)  # Keep some padding
-                     for y in range(1, self.size[0] - 6)
-        ]
-        random.shuffle(possible_positions)
+        # Mark the edges as occupied, don't place anything there.
+        occupied[0, :] = True
+        occupied[-1, :] = True
+        occupied[:, 0] = True
+        occupied[:, -1] = True
         all_entrances = []
 
+        # Try to place the templates
         for map, template in templates:
-            for x, y in possible_positions:
+            windows = np.lib.stride_tricks.sliding_window_view(
+                occupied, map.shape
+            )
+            valid_windows = ~np.any(windows, axis=(2, 3))
+            valid_positions = np.argwhere(valid_windows)
+            if valid_positions.shape[0] == 0:
+                raise ValueError("no space to fit {template}")
+            else:
+                chosen_index = valid_positions[np.random.randint(len(valid_positions))]
+                y, x = chosen_index
                 t_height, t_width = map.shape
-
-                # Ensure the template fits in the available space
-                if x + t_width < self.size[1] and y + t_height < self.size[0]:
-                    #EXPLAIN this line
-                    if not np.any(occupied[y:y + t_height, x:x + t_width]):
-                        # Place the template
-                        entrances = self.place_template_entrances(
-                            map, template, terrains
-                        )
-                        self.map[y:y + t_height, x:x + t_width] = map
-                        occupied[y:y + t_height, x:x + t_width] = True
-                        entrances = [(x + entrance[1], y + entrance[0]) for entrance in entrances]
-                        all_entrances.extend(entrances)
-                        break
+                entrances = self.place_template_entrances(
+                    map, template, terrains
+                )
+                self.map[y:y + t_height, x:x + t_width] = map
+                occupied[y:y + t_height, x:x + t_width] = True
+                entrances = [(x + entrance[1], y + entrance[0]) for entrance in entrances]
+                all_entrances.extend(entrances)
 
         # Compute MST for room connections
         connections = compute_mst(all_entrances)
