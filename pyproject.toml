@@ -10,6 +10,7 @@ readme = "README.md"
 python = "^3.12"
 wxpython = {version = "^4.2.2", platform = "win32"}
 accessible-output3 = {git = "https://github.com/SigmaNight/accessible_output3", platform = "win32"}
+parse = "^1.20.2"
 
 
 [tool.poetry.group.dev.dependencies]

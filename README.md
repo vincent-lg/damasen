@@ -60,6 +60,14 @@ When installed, you need [poetry](https://python-poetry.org/docs/). On Windows, 
 
         poetry install --no-root
 
+4.  The pathfinding mecdhanism depends on a module that cannot, for the time being, be installed with poetry. You can run the following command:
+
+        python -m pip install pyastar2d==1.0.6
+
+    (or, if you have allowed poetry to create its own virtual environment):
+
+        poetry run python -m pip install pyastar2d==1.0.6
+
 ## Running from source
 
 To run, you must start the package `damasen`. If you have created a virtual environment manually, the command is as simple as:

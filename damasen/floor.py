@@ -10,6 +10,7 @@ import random
 
 import numpy as np
 
+from damasen.cell.other import OtherCell
 from damasen.finder import compute_mst, dijkstra
 from damasen.mixins.enhanced import EnhancedWithData
 from damasen.template import Template
@@ -21,10 +22,25 @@ class Floor(EnhancedWithData):
 
     """Abstract floor, to be inherited by actual floors located in the game directory."""
 
-    allow_no_python_file = False
+    allow_no_python_file = True
     allow_no_data_file = True
+    specifications = {
+        "height": "int",
+        "width": "int",
+        "spec": {
+            "cells": {
+                ...: "interval",
+            },
+        },
+    }
 
     size: tuple[int, int]
+    height: int
+    width: int
+    spec: dict = {
+        "cells": {},
+    }
+    cells: list[OtherCell]
     templates: list[Template]
 
     def __init__(self):
@@ -203,14 +219,6 @@ class Floor(EnhancedWithData):
 
         return entrances
 
-    def print_map(self):
-        """Print the whole map, for debugging purpose."""
-        for row in self.map:
-            for number in row:
-                tile = self.mapping[number]
-                print(tile.display_character, end="")
-            print()
-
     @classmethod
     def load(cls, level: str, floor: str) -> "Floor":
         """Load a floor with its templates.
@@ -225,6 +233,10 @@ class Floor(EnhancedWithData):
         """
         address = f"game/floors/{level}/{floor}"
         cls_level = cls.load_one(f"{address}.py", f"{address}.txt")
+        cls_level.size = (cls_level.height, cls_level.width)
+
+        address = f"game/cells/{level}/{floor}"
+        cls_level.cells = OtherCell.load_all(address, address)
 
         # Load templates for this level.
         address = f"game/templates/{level}/{floor}"

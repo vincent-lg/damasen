@@ -140,6 +140,17 @@ files = [
 dev = ["black", "mypy", "pytest"]
 
 [[package]]
+name = "parse"
+version = "1.20.2"
+description = "parse() is the opposite of format()"
+optional = false
+python-versions = "*"
+files = [
+    {file = "parse-1.20.2-py2.py3-none-any.whl", hash = "sha256:967095588cb802add9177d0c0b6133b5ba33b1ea9007ca800e526f42a85af558"},
+    {file = "parse-1.20.2.tar.gz", hash = "sha256:b41d604d16503c79d81af5165155c0b20f6c8d6c559efa66b4b695c3e5a0a0ce"},
+]
+
+[[package]]
 name = "platform_utils"
 version = "1.5.0"
 description = "Cross-platform utilities for accomplishing some tasks that the stdlib isn't equipped to provide"
@@ -395,4 +406,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "aa6441538edd40eeac8c7b577da531ec8ac496b4e58ad4fd1bd7aad5c78b7e3f"
+content-hash = "a1729c51cefb5b58290ecf48a512c5e95cec8232eea7d097d5542c3fb668e36c"

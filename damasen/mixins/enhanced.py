@@ -11,10 +11,14 @@ from pathlib import Path
 import sys
 from typing import Any, Type
 
+from parse import parse, Result
+
 
 class EnhancedWithData:
 
     """A mixin to load external Python modules and enhance them with data."""
+
+    specifications = {}
 
     @classmethod
     def load_one(
@@ -87,7 +91,7 @@ class EnhancedWithData:
 
             loaded = found
         elif not cls.allow_no_python_file:
-            raise ValueError("a python module should be defined in {py_file}")
+            raise ValueError(f"a python module should be defined in {py_file}")
         else:
             loaded = type(f"Dynamic.{cls.__name__}", (cls,), {})
 
@@ -98,7 +102,7 @@ class EnhancedWithData:
 
             loaded.extend_from_data(contents)
         elif not cls.allow_no_data_file:
-            raise ValueError("a data file should be defined in {data_file}")
+            raise ValueError(f"a data file should be defined in {data_file}")
 
         return loaded
 
@@ -135,3 +139,118 @@ class EnhancedWithData:
             classes.append(loaded)
 
         return classes
+
+    @classmethod
+    def extend_from_data(cls, data):
+        """Extend a class with some data.
+
+        By default, we use the definitions to parse a pseudo language
+        to configure the class.
+
+        """
+        category = ()
+
+        for line in data.splitlines():
+            if not line.strip():
+                continue
+
+            line = line.lstrip()
+            specifications = cls.specifications
+            for key in category:
+                spec = specifications.get(key)
+                if spec is None:
+                    spec = specifications[...]
+                specifications = spec
+
+            # end is a special case
+            if line == "end":
+                if category:
+                    category = category[:-1]
+                else:
+                    raise ValueError("Syntax error: cannot terminate category")
+            elif line.endswith(":"):
+                # It's a category. Check that it's allowed.
+                key = line.removesuffix(":")
+                if not isinstance(specifications.get(key), dict):
+                    raise ValueError(f"unknown category: {key}")
+                category = category + (key,)
+            else:
+                key = line.split(" ")[0]
+                option_spec = specifications.get(key)
+                if option_spec is None:
+                    option_spec = specifications.get(...)
+
+                if option_spec is None:
+                    raise ValueError(f"not a supported option: {key!r}")
+                elif isinstance(option_spec, dict):
+                    raise ValueError(f"this is a category: {key}")
+
+                if (
+                    result := cls.parse_option(
+                        category, option_spec, key, line
+                    )
+                ) is not None:
+                    cls.write_option(category, key, result)
+
+    @classmethod
+    def parse_option(
+        cls, category: tuple[str], spec: str, key: str, line: str
+    ) -> Result:
+        """Try to parse an option given in a format.
+
+        Args:
+            category (tuple): the tuple of keys leading to this option.
+            spec (str): the type specification for this key.
+            key (str): the option name.
+            line (str): the line to parse.
+
+        """
+        match spec:
+            case "any":
+                format = f"{key} {{}}"
+            case "int":
+                format = f"{key} {{:d}}"
+            case "float":
+                format = f"{key} {{:f}}"
+            case "number":
+                format = f"{key} {{:g}}"
+            case "interval":
+                format = f"{key} between {{:d}} and {{:d}}"
+            case _:
+                raise ValueError(f"unknown type spec: {spec!r}")
+
+        if result := parse(format, line):
+            if len(result.fixed) == 1:
+                return result.fixed[0]
+            else:
+                return result.fixed
+        else:
+            raise ValueError(
+                f"invalid format for {key!r}: expecting {format!r}"
+            )
+
+    @classmethod
+    def write_option(cls, category: tuple[str], key: str, value: Any) -> None:
+        """Write an option in the class.
+
+        Args:
+            category (tuple of str): the categories.
+            key (str): the option key.
+            value (any): the value to write.
+
+        """
+        if category:
+            dictionary = None
+            for cat in category:
+                if dictionary is None:
+                    dictionary = {}
+                    setattr(cls, cat, dictionary)
+                else:
+                    if cat not in dictionary:
+                        dictionary[cat] = {}
+
+                    dictionary = dictionary[cat]
+
+            dictionary[key] = value
+        else:
+            setattr(cls, key, value)

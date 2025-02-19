@@ -1,0 +1,8 @@
+height 40
+width 40
+
+spec:
+  cells:
+    goblin between 2 and 3
+  end
+end

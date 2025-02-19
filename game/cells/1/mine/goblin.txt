@@ -1,0 +1,2 @@
+display_char G
+range between 1 and 3
