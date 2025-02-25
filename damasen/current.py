@@ -55,6 +55,7 @@ class Current:
         self.display_mask = None
         self.los_mask = None
         self.memory = None
+        self.relative_player_cell = (0, 0)
 
     def randomly_place_player_cell(self):
         """Randomly place the player cell on the map.
@@ -147,6 +148,10 @@ class Current:
         if coords.size > 0:
             min_y, min_x = coords.min(axis=0)
             max_y, max_x = coords.max(axis=0)
+            self.relative_player_cell = (
+                int(self.player_cell.y - min_y),
+                int(self.player_cell.x - min_x)
+            )
             visible_region = np.full(
                 (max_y - min_y, max_x - min_x), " ", dtype=str
             )
